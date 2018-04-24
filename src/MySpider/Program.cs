@@ -1,10 +1,12 @@
-# DonetSpider
-一个基于.net的爬虫，没有什么先进技术。全凭自己对于前端页面的理解，使用http请求获取html的数据，然后使用html解析工具进行解析，来获取自己想要的内容。
+﻿using DonetSpider;
+using System;
+using System.Collections.Generic;
 
-## 简单例子
-
-```
- static void Main(string[] args)
+namespace MySpider
+{
+    class Program
+    {
+        static void Main(string[] args)
         {
             DonetSpider.SaveMessage save = SaveMessage;
             SpiderConfig config = new SpiderConfig
@@ -60,5 +62,5 @@
             Console.WriteLine();
 
         }
-```
-![简单例子](./Img/1.png)
+    }
+}

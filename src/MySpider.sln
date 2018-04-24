@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MySpider", "MySpider\MySpider.csproj", "{872B38C0-1F98-40AD-84FE-369292659A7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DonetSpider", "DonetSpider\DonetSpider.csproj", "{C50CDD22-C013-475C-94C3-C9D4025CC2C5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{872B38C0-1F98-40AD-84FE-369292659A7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{872B38C0-1F98-40AD-84FE-369292659A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{872B38C0-1F98-40AD-84FE-369292659A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{872B38C0-1F98-40AD-84FE-369292659A7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C50CDD22-C013-475C-94C3-C9D4025CC2C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C50CDD22-C013-475C-94C3-C9D4025CC2C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C50CDD22-C013-475C-94C3-C9D4025CC2C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C50CDD22-C013-475C-94C3-C9D4025CC2C5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8581573F-3CAD-447C-9E33-2B6290BF559F}
+	EndGlobalSection
+EndGlobal
