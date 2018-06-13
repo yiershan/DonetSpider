@@ -1,35 +1,39 @@
 ﻿using AngleSharp.Parser.Html;
+using DonetSpider.http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 
 namespace DonetSpider
 {
     public class Spider
     {
-        SpiderConfig Config;
-        HtmlParser htmlParser;
-        SaveMessage saveMessage;
-        AngleSharp.Dom.Html.IHtmlDocument dom;
+        HttpHelper http;
+
+
+        protected SpiderConfig Config;
+        protected HtmlParser htmlParser;
+        protected SaveMessage saveMessage;
+        protected AngleSharp.Dom.Html.IHtmlDocument dom;
+
         public string Url { get; protected set; }
         public string ErrorMessage { get; protected set; }
-
-        public Spider(SpiderConfig Config, SaveMessage saveMessage = null)
-        {
-            this.Config = Config;
+        public Spider() {
             htmlParser = new HtmlParser();
+        }
+        public virtual void Init(SpiderConfig Config, SaveMessage saveMessage = null) {
+            this.Config = Config;
             this.saveMessage = saveMessage;
+            this.http = new HttpHelper();
         }
         public void Start()
         {
             if (Config.Select == null) throw new Exception("没有选择抓取内容");
             Url = Config.MainUrl;
             doTask();
-
         }
-        void doTask() {
+
+        protected virtual void doTask() {
             string url = Url;
             if (string.IsNullOrEmpty(Url)) return;
             var html = GetHTMLByURL(Url);
@@ -40,7 +44,7 @@ namespace DonetSpider
             }
             nextPage();
         }
-        void nextPage() {
+        protected virtual void nextPage() {
             if (Config.NextPage == null) return;
             if (Config.NextPage.param != null) {
 
@@ -55,7 +59,7 @@ namespace DonetSpider
                 return;
             }
         }
-        void select(AngleSharp.Dom.IElement element) {
+        protected void select(AngleSharp.Dom.IElement element) {
             Dictionary<string, string> message = new Dictionary<string, string>();
             foreach (var s in Config.Select)
             {
@@ -63,7 +67,7 @@ namespace DonetSpider
             }
             saveMessage?.Invoke(message);
         }
-       string select(AngleSharp.Dom.IElement element, SelectQuery query) {
+       protected string select(AngleSharp.Dom.IElement element, SelectQuery query) {
             string value = "";
             var msg = explain(element, query.Query).FirstOrDefault();
 
@@ -74,7 +78,7 @@ namespace DonetSpider
             return value;
 
         }
-        IList<AngleSharp.Dom.IElement>  explain(AngleSharp.Dom.IElement element, HtmlQuery query)
+        protected IList<AngleSharp.Dom.IElement>  explain(AngleSharp.Dom.IElement element, HtmlQuery query)
         {
             if (query == null) return new List<AngleSharp.Dom.IElement> { element } ;
             var result = element.QuerySelectorAll(query.Query).ToList();
@@ -85,7 +89,7 @@ namespace DonetSpider
             return explain(result,query.Children);
 
         }
-        IList<AngleSharp.Dom.IElement> explain(IList<AngleSharp.Dom.IElement> element, HtmlQuery query)
+        protected IList<AngleSharp.Dom.IElement> explain(IList<AngleSharp.Dom.IElement> element, HtmlQuery query)
         {
             if (query == null) return element;
             var result = new List<AngleSharp.Dom.IElement>();
@@ -108,7 +112,7 @@ namespace DonetSpider
             }
             return result;
         }
-        IList<AngleSharp.Dom.IElement> explain(string html)
+        protected virtual IList<AngleSharp.Dom.IElement> explain(string html)
         {
             dom = htmlParser.Parse(html);
             if (Config.Query == null) throw new Exception("Config配置里Query不能为空");
@@ -120,51 +124,11 @@ namespace DonetSpider
             }
             return explain(result, Config.Query.Children);
         }
-        /// <summary>
-        /// 访问页面
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        string httpGet(string url)
-        {
-            string result = "";
-            using (HttpClient client = new HttpClient())
-            {
-                if (Config.HttpConfig != null && Config.HttpConfig.Timeout.HasValue)
-                {
-                    client.Timeout = new TimeSpan(0, 0, Config.HttpConfig.Timeout.Value);
-                }
-                Byte[] resultBytes = client.GetByteArrayAsync(url).Result;
-                result = Encoding.GetEncoding("GB2312").GetString(resultBytes);
-            }
-            return result;
+        protected virtual string GetHTMLByURL(string url) {
+           return http.GetHTMLByURL(url);
         }
-        string GetHTMLByURL(string url)
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            try
-            {
-                System.Net.WebRequest wRequest = System.Net.WebRequest.Create(url);
-                wRequest.ContentType = "text/html; charset=gb2312";
 
-                wRequest.Method = "get";
-                wRequest.UseDefaultCredentials = true;
-                // Get the response instance.
-                var task = wRequest.GetResponseAsync();
-                System.Net.WebResponse wResp = task.Result;
-                System.IO.Stream respStream = wResp.GetResponseStream();
-                //dy2018这个网站编码方式是GB2312,
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream, Encoding.GetEncoding("GB2312")))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return string.Empty;
-            }
-        }
+
     }
 
     public delegate void SaveMessage(Dictionary<string, string> message);

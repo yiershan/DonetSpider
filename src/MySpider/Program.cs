@@ -1,4 +1,5 @@
 ﻿using DonetSpider;
+using DonetSpider.http;
 using System;
 using System.Collections.Generic;
 
@@ -16,11 +17,9 @@ namespace MySpider
                 {
                     Timeout = 20000
                 },
-                Query = new HtmlQuery {
-                    Query = "div.co_content8",
-                    Children = new HtmlQuery {
-                        Query = "table"
-                    }
+                Query = new HtmlQuery
+                {
+                    Query = "div.co_content8 a",
                 },
                 Select = new List<SelectQuery> {
                     new SelectQuery{
@@ -39,13 +38,15 @@ namespace MySpider
                         Attribute = "href"
                     }
                 },
-                NextPage = new NextPage {
-                     next = new NextPageByNext {
+                NextPage = new NextPage
+                {
+                    next = new NextPageByNext
+                    {
 
                     }
                 }
             };
-            Spider s = new Spider(config, save);
+            SpiderBase s = new SpiderBase(new HttpHelper(),config);
             s.Start();
             Console.WriteLine("完毕");
             Console.ReadLine();

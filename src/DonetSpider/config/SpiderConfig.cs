@@ -6,6 +6,7 @@ namespace DonetSpider
 {
     public class SpiderConfig
     {
+        public Login Login { get; set; }
         /// <summary>
         /// 访问入口
         /// </summary>
@@ -26,6 +27,23 @@ namespace DonetSpider
         /// 获取下一页的方式
         /// </summary>
         public NextPage NextPage { get; set; }
+    }
+    public class Login {
+        /// <summary>
+        /// 登陆页面地址
+        /// </summary>
+        public string LoginPageUrl { get; set; }
+        /// <summary>
+        /// 登陆地址
+        /// </summary>
+        public string LoginUrl { get; set; }
+        /// <summary>
+        /// 抓取验证码的条件
+        /// </summary>
+        public SelectQuery ValiCodeQuery { get; set; }
+        public string UserName { get; set; }
+        public string PassWord { get; set; }
+
     }
     public class NextPage {
         /// <summary>
