@@ -16,10 +16,6 @@ namespace DonetSpider
         /// </summary>
         public HttpConfig HttpConfig { get; set; }
         /// <summary>
-        /// 查询条件
-        /// </summary>
-        public HtmlQuery Query { get; set; }
-        /// <summary>
         /// 获取内容
         /// </summary>
         public List<SelectQuery> Select { get; set; }
@@ -65,8 +61,9 @@ namespace DonetSpider
     }
     public class SelectQuery {
         public HtmlQuery Query { get; set; }
-        public string Attribute { get; set; }
-        public string ResultKey { get; set; }
+        public List<HtmlSelect> Select { get; set; }
+        public string Name { get; set; }
+
     }
     public class HtmlQuery {
         public String Query { get; set; }
@@ -76,6 +73,14 @@ namespace DonetSpider
     public class HtmlWhere {
         public String Key { get; set; }
         public String Value { get; set; }
+       
+    }
+
+    public class HtmlSelect {
+        public String Query { get; set; }
+        public string Attribute { get; set; }
+        public string ResultKey { get; set; }
+        public List<SelectQuery> Url { get; set; }
     }
 
     public class HttpConfig {

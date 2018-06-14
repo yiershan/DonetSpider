@@ -14,42 +14,102 @@ namespace DonetSpider
         protected IHttpHelper Http;
         protected SpiderConfig Config;
         protected HtmlParser htmlParser;
+        protected SaveMessage SaveMessage;
+        private string host;
 
-        public SpiderBase(IHttpHelper http, SpiderConfig config) {
+        public SpiderBase(IHttpHelper http, SpiderConfig config, SaveMessage saveMessage) {
             this.Http = http;
             this.htmlParser = new HtmlParser();
             this.Config = config;
+            this.SaveMessage = saveMessage;
         }
         public void Start() {
-            DellUrl(Config.MainUrl);
+            this.host = Http.GetHost(Config.MainUrl);
+            var data = DellUrl(Config.MainUrl,Config.Select);
+            if (SaveMessage != null) {
+                    this.SaveMessage(data);
+            } 
         }
 
-        protected void DellUrl(string url) {
+        protected ResultMessage DellUrl(string url, List<SelectQuery> Select) {
+            var result = new ResultMessage();
             string html = Http.GetHTMLByURL(url);
             var dom = htmlParser.Parse(html);
-            var data = dom.QuerySelectorAll(Config.Query.Query);
-            foreach (var d in data) {
-
+            foreach (var s in Select) {
+               result.Add(string.IsNullOrEmpty(s.Name)?result.Count.ToString():s.Name, GetValues(dom,s)) ;
             }
+
+            return result;
         }
 
         protected IList<IElement> GetElements(IHtmlDocument html,HtmlQuery query) {
-            return html.QuerySelectorAll(query.Query).ToList();
-        }
-        protected IElement GetElement(IElement html, HtmlQuery query)
-        {
-            return html.QuerySelector(query.Query);
-        }
-        protected string GetValues(IElement element, SelectQuery select) {
-            if (select.Query != null) {
-                element = GetElement(element,select.Query);
-            }
-            string value = "";
-            if (element != null&&select.Attribute!=null)
+            var result = html.QuerySelectorAll(query.Query).ToList();
+            if (query.Where != null)
             {
-                value = select.Attribute.ToUpper() == "HTML" ? element.InnerHtml : element.GetAttribute(select.Attribute);
+                result = result.Where(m => m.GetAttribute(query.Where.Key) == query.Where.Value).ToList();
             }
-            return value;
+            return result;
+        }
+        protected ResultMessage GetValues(IHtmlDocument html, SelectQuery select)
+        {
+            var result = new ResultMessage();
+            if (select.Query != null)
+            {
+                var ele = GetElements(html,select.Query);
+                foreach (var e in ele)
+                {
+                    if (select.Select!=null) {
+                        result.Add(result.Count.ToString(), GetValues(e, select.Select));
+                    }
+                }
+            }
+            return result;
+
+        }
+        protected ResultMessage GetValue(IElement element, HtmlSelect select) {
+            var result = new ResultMessage();
+            var e = select.Query == null? element: element.QuerySelector(select.Query);
+
+            if (e != null && select.Attribute != null)
+            {
+                string value = select.Attribute.ToUpper() == "HTML" ? e.TextContent.Trim() : e.GetAttribute(select.Attribute);
+                if (select.Url != null)
+                {
+                    var values = DellUrl(GetUrl(value) ,select.Url);
+                    if (values != null)
+                    {
+                        foreach (var v in values)
+                        {
+                            result.Add(v.Key, v.Value);
+                        }
+                    }
+                }
+                else
+                {
+                    result.Add(select.ResultKey != null ? select.ResultKey : select.Attribute, new ResultMessage { Result = value});
+                }
+            }
+            return result;
+        }
+        protected ResultMessage GetValues(IElement element, IList<HtmlSelect> select) {
+            var result = new ResultMessage();
+            foreach (var s in select)
+            {
+                result.Add(result.Count.ToString(),GetValue(element,s));
+            }
+            return result;
+        }
+        protected string GetUrl(string url) {
+            if (url.Trim().ToUpper().StartsWith("HTTP"))
+            {
+                return url;
+            }
+            else
+            {
+                return this.host + url;
+            }
         }
     }
+
+    public delegate void SaveMessage(ResultMessage message);
 }

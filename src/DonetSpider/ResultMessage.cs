@@ -4,11 +4,8 @@ using System.Text;
 
 namespace DonetSpider
 {
-    public class ResultMessage
+    public class ResultMessage : Dictionary<string, ResultMessage>
     {
-        public string Name { get; set; }
-        public string Img { get; set; }
-        public string Url { get; set; }
-        public string Tags { get; set; }
+        public string Result { get; set; }
     }
 }

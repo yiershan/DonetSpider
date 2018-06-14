@@ -55,9 +55,16 @@ namespace DonetSpider.http
                 return string.Empty;
             }
         }
+        public string GetHost(string url)
+        {
+            Uri URL = new Uri(url);
+            return URL.Scheme+ "://"+URL.Host;
+        }
     }
 
     public interface IHttpHelper {
         string GetHTMLByURL(string url, string encoding = null, string ContentType = null);
+        string GetHost(string url);
     }
+
 }
