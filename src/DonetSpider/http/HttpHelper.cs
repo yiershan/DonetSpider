@@ -44,7 +44,13 @@ namespace DonetSpider.http
                 var task = webRequest.GetResponseAsync();
                 System.Net.WebResponse wResp = task.Result;
                 System.IO.Stream respStream = wResp.GetResponseStream();
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream, Encoding.GetEncoding(encoding??_encoding)))
+                if (encoding != null) {
+                    using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream, Encoding.GetEncoding(encoding)))
+                    {
+                        return reader.ReadToEnd();
+                    }
+                }
+                using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream))
                 {
                     return reader.ReadToEnd();
                 }
