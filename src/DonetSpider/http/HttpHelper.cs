@@ -12,6 +12,11 @@ namespace DonetSpider.http
         string _contentType;
         CookieContainer cookies;
         HttpWebRequest webRequest;
+
+        Stream inStream = null;
+        Stream outStream = null;
+        StreamReader reader = null;
+        WebResponse response = null;
         public HttpHelper(string encoding = "GB2312", string contentType = "application/x-www-form-urlencoded") {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             this._encoding = encoding;
@@ -33,27 +38,79 @@ namespace DonetSpider.http
             CookieCollection cookieheader = webRequest.CookieContainer.GetCookies(new Uri(LOGIN_URL));
             cookies.Add(cookieheader);
         }
-        public string GetHTMLByURL(string url, string encoding= null, string ContentType= null)
+        public bool SavePhotoFromUrl(string FileName, string Url)
+        {
+            bool Value = false;
+
+            try
+            {
+                webRequest = (HttpWebRequest)WebRequest.Create(Url);
+
+                response = webRequest.GetResponse();
+
+                if (!response.ContentType.ToLower().StartsWith("text/"))
+                {
+                    Value = SaveBinaryFile(response,FileName);
+                }
+                response.Close();
+
+            }
+            catch (Exception err)
+            {
+                string aa = err.ToString();
+            }
+            return Value;
+            }
+
+
+        /// <summary>
+        /// Save a binary file to disk.
+        /// </summary>
+        /// <param name="response">The response used to save the file</param>
+        // 将二进制文件保存到磁盘
+        private bool SaveBinaryFile(WebResponse response, string FileName)
+        {
+            bool Value = true;
+            byte[] buffer = new byte[1024];
+
+            try
+            {
+                if (File.Exists(FileName))
+                    File.Delete(FileName);
+                inStream = response.GetResponseStream();
+                outStream = System.IO.File.Create(FileName);
+                int l;
+                do
+                {
+                    l = inStream.Read(buffer, 0, buffer.Length);
+                    if (l > 0)
+                        outStream.Write(buffer, 0, l);
+                }
+                while (l > 0);
+                outStream.Close();
+                inStream.Close();
+            }
+            catch
+            {
+                Value = false;
+            }
+            return Value;
+        }
+        public string GetHTMLByURL(string url, string encoding = null, string ContentType = null)
         {
             try
             {
                 webRequest = (HttpWebRequest)WebRequest.Create(url);
-                webRequest.ContentType = ContentType??_contentType;
+                webRequest.ContentType = ContentType ?? _contentType;
                 webRequest.Method = "get";
                 webRequest.UseDefaultCredentials = true;
                 var task = webRequest.GetResponseAsync();
-                System.Net.WebResponse wResp = task.Result;
-                System.IO.Stream respStream = wResp.GetResponseStream();
-                if (encoding != null) {
-                    using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream, Encoding.GetEncoding(encoding)))
-                    {
-                        return reader.ReadToEnd();
-                    }
-                }
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(respStream))
-                {
-                    return reader.ReadToEnd();
-                }
+                response = task.Result;
+                inStream = response.GetResponseStream();
+                reader = encoding != null ? new StreamReader(inStream, Encoding.GetEncoding(encoding)) : new System.IO.StreamReader(inStream);
+                var result = reader.ReadToEnd();
+                response.Close();
+                return result;
             }
             catch (Exception ex)
             {
@@ -71,6 +128,7 @@ namespace DonetSpider.http
     public interface IHttpHelper {
         string GetHTMLByURL(string url, string encoding = null, string ContentType = null);
         string GetHost(string url);
+        bool SavePhotoFromUrl(string FileName, string Url);
     }
 
 }

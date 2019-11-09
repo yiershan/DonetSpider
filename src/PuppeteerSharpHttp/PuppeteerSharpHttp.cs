@@ -52,5 +52,10 @@ namespace PuppeteerSharpHttp
 
             return htmlString;
         }
+
+        public bool SavePhotoFromUrl(string FileName, string Url)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
