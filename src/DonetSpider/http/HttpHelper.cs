@@ -44,16 +44,21 @@ namespace DonetSpider.http
 
             try
             {
-                webRequest = (HttpWebRequest)WebRequest.Create(Url);
 
-                response = webRequest.GetResponse();
-
-                if (!response.ContentType.ToLower().StartsWith("text/"))
-                {
-                    Value = SaveBinaryFile(response,FileName);
+                WebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url);
+                webRequest.ContentType = _contentType;
+                webRequest.Method = "get";
+                webRequest.Headers.Add("UserAgent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36");
+                webRequest.Headers.Add("Upgrade-Insecure-Requests", "1");
+                webRequest.UseDefaultCredentials = false;
+                var task = webRequest.GetResponseAsync();
+                using (WebResponse response = task.Result) {
+                    if (!response.ContentType.ToLower().StartsWith("text/"))
+                    {
+                        Value = SaveBinaryFile(response, FileName);
+                    }
+                    response.Close();
                 }
-                response.Close();
-
             }
             catch (Exception err)
             {
@@ -98,18 +103,24 @@ namespace DonetSpider.http
         }
         public string GetHTMLByURL(string url, string encoding = null, string ContentType = null)
         {
+            string result = "";
             try
             {
-                webRequest = (HttpWebRequest)WebRequest.Create(url);
+
+                WebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
                 webRequest.ContentType = ContentType ?? _contentType;
                 webRequest.Method = "get";
                 webRequest.UseDefaultCredentials = true;
                 var task = webRequest.GetResponseAsync();
-                response = task.Result;
-                inStream = response.GetResponseStream();
-                reader = encoding != null ? new StreamReader(inStream, Encoding.GetEncoding(encoding)) : new System.IO.StreamReader(inStream);
-                var result = reader.ReadToEnd();
-                response.Close();
+                using (WebResponse response = task.Result)
+                {
+                    using (Stream inStream = response.GetResponseStream())
+                    {
+                        reader = encoding != null ? new StreamReader(inStream, Encoding.GetEncoding(encoding)) : new System.IO.StreamReader(inStream);
+                        result = reader.ReadToEnd();
+                    }
+                    response.Close();
+                }
                 return result;
             }
             catch (Exception ex)

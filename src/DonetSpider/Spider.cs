@@ -14,15 +14,15 @@ namespace DonetSpider
 {
     public class Spider
     {
-        private IHtmlDocument dom;
-        private string html;
+        //private IHtmlDocument dom;
+        //private string html;
         public bool isFirst { get; protected set; } = true;
-        public string savePath { get; private set; } = @"F:\hf\";
+        public virtual string savePath { get; private set; } = @"F:\hf\";
         public List<string> urls { get; private set; }
         /// <summary>
         /// 访问入口
         /// </summary>
-        public string MainUrl { get;private set; }
+        public virtual string MainUrl { get;private set; }
 
         protected IHttpHelper Http { get; private set; }
         public string host { get;private set; }
@@ -91,16 +91,17 @@ namespace DonetSpider
                 if (canStart) {
                     Console.WriteLine($"访问页面：{MainUrl}");
                     this.host = Http.GetHost(MainUrl);
-                    html = Http.GetHTMLByURL(MainUrl);
-                    dom = new HtmlParser().Parse(html);
-                    if (removeScripts)
-                    {
-                        foreach (var i in dom.Scripts)
+                    var html = Http.GetHTMLByURL(MainUrl);
+                    using (IHtmlDocument dom = new HtmlParser().Parse(html)) {
+                        if (removeScripts)
                         {
-                            i.Remove();
+                            foreach (var i in dom.Scripts)
+                            {
+                                i.Remove();
+                            }
                         }
+                        this.Parse(dom);
                     }
-                    this.Parse(dom);
                     this.urls.Add(this.MainUrl);
                 };
 

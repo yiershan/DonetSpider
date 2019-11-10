@@ -55,7 +55,17 @@ namespace PuppeteerSharpHttp
 
         public bool SavePhotoFromUrl(string FileName, string Url)
         {
-            throw new NotImplementedException();
+            var launchOptions = new LaunchOptions { Headless = true };
+            //Starting headless browser
+            var browser = Puppeteer.LaunchAsync(launchOptions).GetAwaiter().GetResult();
+
+            //New tab page
+            var page = browser.NewPageAsync().GetAwaiter().GetResult();
+            //Request URL to get the page
+            page.GoToAsync(Url).Wait();
+            var image = page.WaitForSelectorAsync("img").GetAwaiter().GetResult();
+             image.ScreenshotAsync(FileName).Wait();
+            return true;
         }
     }
 }
