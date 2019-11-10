@@ -12,6 +12,14 @@ namespace PuppeteerSharpHttp
     /// </summary>
     public class PuppeteerSharpHttpHelper : IHttpHelper
     {
+        private readonly object _lock = new object();
+        private Browser browser = null;
+        ~PuppeteerSharpHttpHelper() {
+            if (this.browser != null) {
+                this.browser.CloseAsync().Wait();
+                Console.WriteLine("消亡一个http! 一个browser!");
+            }
+        }
         public string GetHost(string url)
         {
             Uri URL = new Uri(url);
@@ -24,30 +32,35 @@ namespace PuppeteerSharpHttp
         {
             return PuppeteerSharpAsync(url).GetAwaiter().GetResult();
         }
-        
+        private Browser GetBrowser() {
+            if (browser == null)
+            {
+                lock (_lock) {
+                    if (browser == null) {
+                        var launchOptions = new LaunchOptions { Headless = true };
+                        browser = Puppeteer.LaunchAsync(launchOptions).GetAwaiter().GetResult();
+                        Console.WriteLine("开启 一个browser!");
+                    }
+                }
+            }
+            return browser;
+        }
         private async Task<string> PuppeteerSharpAsync(string url)
         {
-            //Enabled headless option
-            var launchOptions = new LaunchOptions { Headless = true };
-            //Starting headless browser
-            var browser = await Puppeteer.LaunchAsync(launchOptions);
+            string htmlString = "";
 
             //New tab page
-            var page = await browser.NewPageAsync();
-            //Request URL to get the page
-            
-            await page.GoToAsync(url, WaitUntilNavigation.DOMContentLoaded); // 等待页面js加载完成
-            
-           
-            //Get and return the HTML content of the page
-            var htmlString = page.GetContentAsync().GetAwaiter().GetResult();
+            using (Page page = await GetBrowser().NewPageAsync())
+            {
+                //Request URL to get the page
 
-            #region Dispose resources
-            //Close tab page
-            await page.CloseAsync();
+                await page.GoToAsync(url, WaitUntilNavigation.DOMContentLoaded); // 等待页面js加载完成
+                htmlString = page.GetContentAsync().GetAwaiter().GetResult();
 
-            //Close headless browser, all pages will be closed here.
-            await browser.CloseAsync();
+                #region Dispose resources
+                //Close tab page
+                await page.CloseAsync();
+            }
             #endregion
 
             return htmlString;
@@ -55,16 +68,13 @@ namespace PuppeteerSharpHttp
 
         public bool SavePhotoFromUrl(string FileName, string Url)
         {
-            var launchOptions = new LaunchOptions { Headless = true };
-            //Starting headless browser
-            var browser = Puppeteer.LaunchAsync(launchOptions).GetAwaiter().GetResult();
-
-            //New tab page
-            var page = browser.NewPageAsync().GetAwaiter().GetResult();
-            //Request URL to get the page
-            page.GoToAsync(Url).Wait();
-            var image = page.WaitForSelectorAsync("img").GetAwaiter().GetResult();
-             image.ScreenshotAsync(FileName).Wait();
+            using (Page page = GetBrowser().NewPageAsync().GetAwaiter().GetResult())
+            {
+                page.GoToAsync(Url).Wait();
+                var image = page.WaitForSelectorAsync("img").GetAwaiter().GetResult();
+                image.ScreenshotAsync(FileName).Wait();
+                page.CloseAsync().Wait();
+            }
             return true;
         }
     }
