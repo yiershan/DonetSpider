@@ -6,31 +6,14 @@ using System.Threading.Tasks;
 
 namespace DonetSpider.http
 {
-    public abstract class HttpHelperBase:IHttpHelper
+    public abstract class HttpHelperBase: HasLog,IHttpHelper
     {
-        private ILog _log;
+       
 
         public IHttpHelper SetLogger(ILog log)
         {
             this._log = log;
             return this;
-        }
-        public IHttpHelper SetLogger(bool log)
-        {
-            _log = log ? new LogHelper() : null;
-            return this;
-        }
-        protected void Debugger(string msg)
-        {
-            if (_log != null) _log.Debugger(msg);
-        }
-        protected void Error(string msg)
-        {
-            if (_log != null) _log.Error(msg);
-        }
-        protected void Waring(string msg)
-        {
-            if (_log != null) _log.Waring(msg);
         }
         public string GetHost(string url)
         {

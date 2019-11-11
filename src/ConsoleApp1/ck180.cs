@@ -26,8 +26,6 @@ namespace ConsoleApp1
             {
                 Console.WriteLine(r.c);
                 Console.WriteLine("--------------------------------");
-                m1.SetUrl(r.a)
-                    .Start();
             }
         }
     }
@@ -50,10 +48,6 @@ namespace ConsoleApp1
             {
                 Console.WriteLine(r.a);
                 Console.WriteLine(r.c);
-
-                m2.SetUrl(r.b)
-                    .RemoveScripts(true)
-                    .Start();
                 Console.WriteLine("…………………………………………");
 
             }
@@ -77,10 +71,6 @@ namespace ConsoleApp1
             {
                 Console.WriteLine(i);
             }
-            var m3 = new m3();
-            m3.SetUrl(down)
-                .SetHttpHelper(http)
-                .Start();
         }
     }
     /// <summary>

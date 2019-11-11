@@ -2,122 +2,123 @@
 using AngleSharp.Dom.Html;
 using AngleSharp.Parser.Html;
 using DonetSpider.http;
+using DonetSpider.Log;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace DonetSpider
 {
-    public class Spider
+    public abstract class Spider: HasLog
     {
-        public bool isFirst { get; protected set; } = true;
-        public virtual string savePath { get; private set; } = @"F:\hf\";
-        public List<string> urls { get; private set; }
-        /// <summary>
-        /// 访问入口
-        /// </summary>
-        public virtual string MainUrl { get;private set; }
-
-        protected IHttpHelper Http { get; private set; }
-        public string host { get;private set; }
-        public bool removeScripts { get; private set; } = false;
+        public string _nextPage { get; private set; }
+        public string _currentPage { get; set; }
+        private IHttpHelper _Http;
+        public string _host { get;private set; }
+        public bool _removeScripts { get; private set; } = false;
         #region 构造函数
-        public Spider()
-        {
-        }
-        public Spider SetSavePath(string path) {
-            this.savePath = path;
-            return this;
-        }
-        /// <summary>
-        /// 设置访问地址
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public Spider SetUrl(string url) {
-            this.MainUrl = url.Trim().ToLower();
-            if (!this.MainUrl.StartsWith("http")) {
-                this.MainUrl = $"http://{MainUrl}";
-            }
-            this.host = Http.GetHost(MainUrl);
-            return this;
-        }
         public Spider SetHttpHelper(IHttpHelper httpHelper) {
-            this.Http = httpHelper;
+            this._Http = httpHelper;
             return this;
         }
         public Spider RemoveScripts(bool remove)
         {
-            this.removeScripts = remove;
+            this._removeScripts = remove;
             return this;
         }
-        #endregion
-        /// <summary>
-        /// 执行前验证
-        /// </summary>
-        protected virtual  bool BeforeStart() {
-            if (string.IsNullOrEmpty(MainUrl)) throw new Exception("未设置页面地址！");
-            if (this.Http == null) this.Http = new HttpHelper();
-            if (this.urls == null) this.urls = new List<string>();
-            if (Directory.Exists(savePath) == false)
+        public Spider SetLogger(ILog log) {
+            this._log = log;
+            return this;
+        }
+        public void StartWithUrl(string url)
+        {
+            this._currentPage = url;
+            if (this.BeforeStart())
             {
-                Directory.CreateDirectory(savePath);
+                this.WithUrl(_currentPage);
             }
-            if (this.urls.Contains(this.MainUrl)) {
-                return false;
-            }
+            this.End();
+        }
+
+        #endregion
+        protected virtual void End()
+        {
+            Debugger("任务结束！");
+        }
+        protected virtual bool BeforeStart() {
+            Debugger("任务开始！");
             return true;
         }
         /// <summary>
-        /// 开始
+        /// 解析网页
         /// </summary>
-        public void Start()
+        protected void WithUrl(string url)
         {
             try
             {
-                bool canStart = true;
-                if (isFirst) {
-                    canStart =  this.BeforeStart();
-                }
-
-                if (canStart) {
-                    
-                    var html = Http.GetHTMLByURL(MainUrl);
-                    using (IHtmlDocument dom = new HtmlParser().Parse(html)) {
-                        if (removeScripts)
-                        {
-                            foreach (var i in dom.Scripts)
-                            {
-                                i.Remove();
-                            }
-                        }
+                Check();
+                var html = _Http.GetHTMLByURL(url);
+                if (!string.IsNullOrEmpty(html)) {
+                    Debugger($"解析{url}页面开始！");
+                    using (IHtmlDocument dom = new HtmlParser().Parse(html))
+                    {
+                        this.PreParse(dom);
+                        _nextPage = GetNextPage(dom);
                         this.Parse(dom);
-                       
+                        Debugger($"解析{url}页面结束！");
+                        NextPage();
                     }
-                    this.urls.Add(this.MainUrl);
-                };
-
-                this.End();
+                }
             }
             catch(Exception e) {
-                Console.WriteLine(e.Message);
-                Console.ReadLine();
+                Error($"解析{url}页面出错：{e.Message}");
             }
         }
-        protected virtual void End() {
-
+        private void NextPage() {
+            if (!string.IsNullOrEmpty(_nextPage)) {
+                WithUrl(_nextPage);
+            }
         }
         /// <summary>
-        /// 解析页面
+        /// 获取下一页
         /// </summary>
-        protected virtual void Parse(IHtmlDocument html) {
-            Console.WriteLine(html.Source.Text);
-            Console.ReadLine();
+        /// <param name="dom"></param>
+        /// <returns></returns>
+        protected virtual string GetNextPage(IHtmlDocument dom) {
+            return string.Empty;
         }
+        /// <summary>
+        /// 网页文档预处理
+        /// </summary>
+        /// <param name="dom"></param>
+        protected virtual void PreParse(IHtmlDocument dom) {
+            if (_removeScripts)
+            {
+                foreach (var i in dom.Scripts)
+                {
+                    i.Remove();
+                }
+            }
+        }
+        /// <summary>
+        /// 开始前校验
+        /// </summary>
+        protected virtual void Check()
+        {
+            if (string.IsNullOrEmpty(this._currentPage))
+            {
+                throw new Exception("地址无效！");
+            }
+            if (this._Http == null)
+            {
+                this._Http = new HttpHelper().SetLogger(_log);
+            }
+        }
+        /// <summary>
+        /// 解析页面内容
+        /// </summary>
+        protected abstract void Parse(IHtmlDocument html);
 
         #region
         protected string GetUrl(string url)
@@ -128,7 +129,7 @@ namespace DonetSpider
             }
             else
             {
-                return this.host + url;
+                return this._host + url;
             }
         }
 
@@ -165,9 +166,13 @@ namespace DonetSpider
             return JsonConvert.DeserializeObject<T>(str);
         
         }
-
-        public void DownPic(string FileName, string Url) {
-            this.Http.SavePhotoFromUrl(FileName, Url);
+        /// <summary>
+        /// 下载图片
+        /// </summary>
+        /// <param name="FileName"></param>
+        /// <param name="Url"></param>
+        public virtual void DownPic(string FileName, string Url) {
+            this._Http.SavePhotoFromUrl(FileName, Url);
         }
         #endregion
     }
