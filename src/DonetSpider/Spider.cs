@@ -14,8 +14,6 @@ namespace DonetSpider
 {
     public class Spider
     {
-        //private IHtmlDocument dom;
-        //private string html;
         public bool isFirst { get; protected set; } = true;
         public virtual string savePath { get; private set; } = @"F:\hf\";
         public List<string> urls { get; private set; }
@@ -45,6 +43,7 @@ namespace DonetSpider
             if (!this.MainUrl.StartsWith("http")) {
                 this.MainUrl = $"http://{MainUrl}";
             }
+            this.host = Http.GetHost(MainUrl);
             return this;
         }
         public Spider SetHttpHelper(IHttpHelper httpHelper) {
@@ -64,17 +63,14 @@ namespace DonetSpider
             if (string.IsNullOrEmpty(MainUrl)) throw new Exception("未设置页面地址！");
             if (this.Http == null) this.Http = new HttpHelper();
             if (this.urls == null) this.urls = new List<string>();
-            if (this.urls.Contains(this.MainUrl)) {
-                return false;
-            }
-
             if (Directory.Exists(savePath) == false)
             {
                 Directory.CreateDirectory(savePath);
             }
+            if (this.urls.Contains(this.MainUrl)) {
+                return false;
+            }
             return true;
-
-
         }
         /// <summary>
         /// 开始
@@ -89,8 +85,7 @@ namespace DonetSpider
                 }
 
                 if (canStart) {
-                    Console.WriteLine($"访问页面：{MainUrl}");
-                    this.host = Http.GetHost(MainUrl);
+                    
                     var html = Http.GetHTMLByURL(MainUrl);
                     using (IHtmlDocument dom = new HtmlParser().Parse(html)) {
                         if (removeScripts)
@@ -101,6 +96,7 @@ namespace DonetSpider
                             }
                         }
                         this.Parse(dom);
+                       
                     }
                     this.urls.Add(this.MainUrl);
                 };
@@ -170,8 +166,8 @@ namespace DonetSpider
         
         }
 
-        public bool DownPic(string FileName, string Url) {
-            return this.Http.SavePhotoFromUrl(FileName, Url);
+        public void DownPic(string FileName, string Url) {
+            this.Http.SavePhotoFromUrl(FileName, Url);
         }
         #endregion
     }

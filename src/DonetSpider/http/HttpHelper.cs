@@ -1,145 +1,93 @@
-﻿using System;
+﻿using DonetSpider.Log;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DonetSpider.http
 {
-    public class HttpHelper: IHttpHelper
+    public class HttpHelper: HttpHelperBase
     {
-        string _encoding;
-        string _contentType;
         CookieContainer cookies;
-        HttpWebRequest webRequest;
-
-        Stream inStream = null;
-        Stream outStream = null;
-        StreamReader reader = null;
-        WebResponse response = null;
-        public HttpHelper(string encoding = "GB2312", string contentType = "application/x-www-form-urlencoded") {
+        #region 
+        public HttpHelper() {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            this._encoding = encoding;
-            this._contentType = contentType;
             cookies = new CookieContainer();
         }
-        public void Login(string LOGIN_URL,string postData, string type= "POST", string ContentType = null) {
-            webRequest = (HttpWebRequest)WebRequest.Create(LOGIN_URL);
-            webRequest.Method = type;
-            webRequest.ContentType = ContentType??_contentType;
-            webRequest.CookieContainer = cookies;
-            StreamWriter requestWriter = new StreamWriter(webRequest.GetRequestStream());
-            requestWriter.Write(postData);
-            requestWriter.Close();
-            StreamReader responseReader = new StreamReader(webRequest.GetResponse().GetResponseStream());
-            string responseData = responseReader.ReadToEnd();
-            responseReader.Close();
-            webRequest.GetResponse().Close();
-            CookieCollection cookieheader = webRequest.CookieContainer.GetCookies(new Uri(LOGIN_URL));
-            cookies.Add(cookieheader);
-        }
-        public bool SavePhotoFromUrl(string FileName, string Url)
+
+        #endregion
+        protected override async Task _SavePhotoFromUrlAsync(string FileName, string Url)
         {
-            bool Value = false;
-
-            try
+            WebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url);
+            webRequest.Method = "get";
+            webRequest.Headers.Add("UserAgent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36");
+            webRequest.Headers.Add("Upgrade-Insecure-Requests", "1");
+            webRequest.UseDefaultCredentials = false;
+            using (WebResponse response = await webRequest.GetResponseAsync())
             {
-
-                WebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url);
-                webRequest.ContentType = _contentType;
-                webRequest.Method = "get";
-                webRequest.Headers.Add("UserAgent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36");
-                webRequest.Headers.Add("Upgrade-Insecure-Requests", "1");
-                webRequest.UseDefaultCredentials = false;
-                var task = webRequest.GetResponseAsync();
-                using (WebResponse response = task.Result) {
-                    if (!response.ContentType.ToLower().StartsWith("text/"))
-                    {
-                        Value = SaveBinaryFile(response, FileName);
-                    }
-                    response.Close();
-                }
-            }
-            catch (Exception err)
-            {
-                string aa = err.ToString();
-            }
-            return Value;
-            }
-
-
-        /// <summary>
-        /// Save a binary file to disk.
-        /// </summary>
-        /// <param name="response">The response used to save the file</param>
-        // 将二进制文件保存到磁盘
-        private bool SaveBinaryFile(WebResponse response, string FileName)
-        {
-            bool Value = true;
-            byte[] buffer = new byte[1024];
-
-            try
-            {
-                if (File.Exists(FileName))
-                    File.Delete(FileName);
-                inStream = response.GetResponseStream();
-                outStream = System.IO.File.Create(FileName);
-                int l;
-                do
+                if (!response.ContentType.ToLower().StartsWith("text/"))
                 {
-                    l = inStream.Read(buffer, 0, buffer.Length);
-                    if (l > 0)
-                        outStream.Write(buffer, 0, l);
+                    SaveBinaryFile(response, FileName);
                 }
-                while (l > 0);
-                outStream.Close();
-                inStream.Close();
+                else
+                {
+                    Waring($"下载{Url}失败！");
+                }
+                response.Close();
             }
-            catch
-            {
-                Value = false;
-            }
-            return Value;
         }
-        public string GetHTMLByURL(string url, string encoding = null, string ContentType = null)
+        /// <summary>
+        /// 将二进制文件保存到磁盘
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="FileName"></param>
+        /// <returns></returns>
+        private void SaveBinaryFile(WebResponse response, string FileName)
+        {
+            byte[] buffer = new byte[1024];
+            if (File.Exists(FileName))
+                File.Delete(FileName);
+            using (Stream inStream = response.GetResponseStream())
+            {
+                using (Stream outStream = File.Create(FileName))
+                {
+                    int l;
+                    do
+                    {
+                        l = inStream.Read(buffer, 0, buffer.Length);
+                        if (l > 0)
+                            outStream.Write(buffer, 0, l);
+                    }
+                    while (l > 0);
+                    outStream.Close();
+                    inStream.Close();
+                }
+            }
+        }
+        protected override async Task<string> _GetHTMLByURLAsync(string url, string encoding = null, string ContentType = null)
         {
             string result = "";
-            try
+            WebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+            if (ContentType != null) webRequest.ContentType = ContentType;
+            webRequest.Method = "get";
+            webRequest.UseDefaultCredentials = true;
+            using (WebResponse response = await webRequest.GetResponseAsync())
             {
-
-                WebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-                webRequest.ContentType = ContentType ?? _contentType;
-                webRequest.Method = "get";
-                webRequest.UseDefaultCredentials = true;
-                var task = webRequest.GetResponseAsync();
-                using (WebResponse response = task.Result)
+                using (Stream inStream = response.GetResponseStream())
                 {
-                    using (Stream inStream = response.GetResponseStream())
+                    using (StreamReader reader = encoding != null ? new StreamReader(inStream, Encoding.GetEncoding(encoding)) : new System.IO.StreamReader(inStream))
                     {
-                        reader = encoding != null ? new StreamReader(inStream, Encoding.GetEncoding(encoding)) : new System.IO.StreamReader(inStream);
                         result = reader.ReadToEnd();
+                        reader.Close();
                     }
-                    response.Close();
                 }
-                return result;
+                response.Close();
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                return string.Empty;
-            }
+            return result;
         }
-        public string GetHost(string url)
-        {
-            Uri URL = new Uri(url);
-            return URL.Scheme+ "://"+URL.Host;
-        }
+        #region private
+        #endregion
     }
-
-    public interface IHttpHelper {
-        string GetHTMLByURL(string url, string encoding = null, string ContentType = null);
-        string GetHost(string url);
-        bool SavePhotoFromUrl(string FileName, string Url);
-    }
-
 }
