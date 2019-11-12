@@ -44,7 +44,7 @@ namespace ConsoleApp1
             foreach (var d in data) {
                 new _34hfPage()
                     .SetSavePath($@"{savePath}{d.Key}\")
-                    .StartWithUrl(d.Key);
+                    .StartWithUrlAsync(d.Key).Wait();
             }
             base.End();
         }

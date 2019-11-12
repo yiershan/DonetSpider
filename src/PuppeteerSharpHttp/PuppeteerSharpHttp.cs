@@ -16,7 +16,7 @@ namespace PuppeteerSharpHttp
         public PuppeteerSharpHttpHelper() {
             new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision).Wait();
             var launchOptions = new LaunchOptions { Headless = true };
-            _browser = Puppeteer.LaunchAsync(launchOptions).GetAwaiter().GetResult();
+            if(_browser==null) _browser = Puppeteer.LaunchAsync(launchOptions).GetAwaiter().GetResult();
         }
         protected override async Task<string> _GetHTMLByURLAsync(string url, string encoding, string ContentType)
         {

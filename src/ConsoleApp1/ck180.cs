@@ -16,17 +16,18 @@ namespace ConsoleApp1
     {
         protected override void Parse(IHtmlDocument html)
         {
-            var result = html.QuerySelectorAll("#menu-menu .menu-item a")
-                 .Select(m => new {
-                     a = m.GetAttribute("href"),
-                     c = m.TextContent.Trim(),
-                 }).Where(m => m.c != "首页").ToList();
-            var m1 = new m1();
-            foreach (var r in result)
-            {
-                Console.WriteLine(r.c);
-                Console.WriteLine("--------------------------------");
-            }
+            var m11 = new m1()
+                .SetLogger(_log)
+                .SetHttpHelper(_Http);
+
+            var result = html.QuerySelectorAll(".preview-box").ToList();
+            //var m1 = new m1();
+            //foreach (var r in result)
+            //{
+            //    Console.WriteLine(r.c);
+            //    Console.WriteLine("--------------------------------");
+            //    //m11.StartWithUrlAsync(r.a).Wait();
+            //}
         }
     }
     /// <summary>
@@ -36,7 +37,9 @@ namespace ConsoleApp1
     {
         protected override void Parse(IHtmlDocument html)
         {
-            var m2 = new m2();
+            var m2 = new m2()
+                .SetLogger(_log)
+                .SetHttpHelper(_Http);
             var result = html.QuerySelectorAll("#content .p-thumb .lazyload")
                 .Select(m => new
                 {
@@ -49,7 +52,7 @@ namespace ConsoleApp1
                 Console.WriteLine(r.a);
                 Console.WriteLine(r.c);
                 Console.WriteLine("…………………………………………");
-
+                m2.StartWithUrlAsync(r.b).Wait();
             }
         }
     }
@@ -60,6 +63,10 @@ namespace ConsoleApp1
     {
         protected override void Parse(IHtmlDocument html)
         {
+            var m3 = new m3()
+                     .SetLogger(_log)
+                     .SetHttpHelper(_Http);
+
             IHttpHelper http = new PuppeteerSharpHttpHelper();
             var dbc = html.QuerySelector(".dbc").TextContent.Trim();
             var ll = html.QuerySelector("#video-list").TextContent.Trim();
@@ -71,6 +78,7 @@ namespace ConsoleApp1
             {
                 Console.WriteLine(i);
             }
+            m3.StartWithUrlAsync(down).Wait();
         }
     }
     /// <summary>

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DonetSpider
 {
@@ -14,7 +15,7 @@ namespace DonetSpider
     {
         public string _nextPage { get; private set; }
         public string _currentPage { get; set; }
-        private IHttpHelper _Http;
+        public IHttpHelper _Http { get; private set; }
         public string _host { get;private set; }
         public bool _removeScripts { get; private set; } = false;
         #region 构造函数
@@ -31,12 +32,12 @@ namespace DonetSpider
             this._log = log;
             return this;
         }
-        public void StartWithUrl(string url)
+        public async Task StartWithUrlAsync(string url)
         {
             this._currentPage = url;
             if (this.BeforeStart())
             {
-                this.WithUrl(_currentPage);
+                await this.WithUrlAsync(_currentPage);
             }
             this.End();
         }
@@ -53,12 +54,12 @@ namespace DonetSpider
         /// <summary>
         /// 解析网页
         /// </summary>
-        protected void WithUrl(string url)
+        protected async Task WithUrlAsync(string url)
         {
             try
             {
                 Check();
-                var html = _Http.GetHTMLByURL(url);
+                var html = await _Http.GetHTMLByURLAsync(url);
                 if (!string.IsNullOrEmpty(html)) {
                     Debugger($"解析{url}页面开始！");
                     using (IHtmlDocument dom = new HtmlParser().Parse(html))
@@ -67,7 +68,7 @@ namespace DonetSpider
                         _nextPage = GetNextPage(dom);
                         this.Parse(dom);
                         Debugger($"解析{url}页面结束！");
-                        NextPage();
+                        await NextPageAsync();
                     }
                 }
             }
@@ -75,9 +76,9 @@ namespace DonetSpider
                 Error($"解析{url}页面出错：{e.Message}");
             }
         }
-        private void NextPage() {
+        private async Task NextPageAsync() {
             if (!string.IsNullOrEmpty(_nextPage)) {
-                WithUrl(_nextPage);
+                await WithUrlAsync(_nextPage);
             }
         }
         /// <summary>
