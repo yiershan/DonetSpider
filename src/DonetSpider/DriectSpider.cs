@@ -7,8 +7,11 @@ namespace DonetSpider
 {
     public class DriectSpider : Spider
     {
-        Action<IHtmlDocument> _parse;
         Func<IHtmlDocument, string> _getNextPage;
+
+
+
+
         public DriectSpider() {
 
         }
@@ -23,6 +26,9 @@ namespace DonetSpider
             return _getNextPage(dom);
         }
 
+        string _parse(IHtmlDocument html) {
+            return null;
+        }
 
     }
 }
