@@ -35,6 +35,7 @@ namespace DonetSpider
         public async Task StartWithUrlAsync(string url)
         {
             this._currentPage = url;
+            if (_Http == null) _Http = new HttpHelper().SetLogger(_log);
             if (this.BeforeStart())
             {
                 await this.WithUrlAsync(_currentPage);
