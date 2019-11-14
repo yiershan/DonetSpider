@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DonetSpider.Log;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,12 @@ namespace DonetSpider.http
 
     public interface IHttpHelper:IDisposable
     {
+        /// <summary>
+        /// 设置日志模块
+        /// </summary>
+        /// <param name="log"></param>
+        /// <returns></returns>
+        IHttpHelper SetLogger(ILog log);
         /// <summary>
         /// 获取页面
         /// </summary>

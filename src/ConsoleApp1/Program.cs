@@ -26,9 +26,4 @@ namespace ConsoleApp1
                .Wait();
         }
     }
-    public class SpiderConfig {
-        public string MainUrl { get; set; }
-        public Config Config { get; set; } = new Config();
-        public NextPageConfig NextPageConfig { get; set; } = new NextPageConfig();
-    }
 }

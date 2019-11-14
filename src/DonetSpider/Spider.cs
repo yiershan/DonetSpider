@@ -30,6 +30,7 @@ namespace DonetSpider
         }
         public Spider SetLogger(ILog log) {
             this._log = log;
+            if (_Http != null) _Http.SetLogger(_log);
             return this;
         }
         public async Task StartWithUrlAsync(string url)
@@ -66,7 +67,7 @@ namespace DonetSpider
                     using (IHtmlDocument dom = new HtmlParser().Parse(html))
                     {
                         this.PreParse(dom);
-                        _nextPage = GetNextPage(dom);
+                        _nextPage = GetUrl(GetNextPage(dom));
                         this.Parse(dom);
                         Debugger($"解析{url}页面结束！");
                         await NextPageAsync();
