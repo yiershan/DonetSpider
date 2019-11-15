@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Remove="34hf.cs" />
     <Compile Remove="ck180.cs" />
+    <Compile Remove="HJD.cs" />
   </ItemGroup>
 
   <ItemGroup>
