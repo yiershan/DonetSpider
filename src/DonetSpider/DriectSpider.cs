@@ -9,7 +9,7 @@ namespace DonetSpider
 {
     public class DriectSpider : Spider
     {
-        Action<string,string> _save { get; set; }
+        Action<List<Dictionary<string, string>>, string> _save { get; set; }
 
         Config _config = new Config();
         NextPageConfig _nexPageConfig = new NextPageConfig();
@@ -22,23 +22,29 @@ namespace DonetSpider
             _nexPageConfig = config;
             return this;
         }
-        public DriectSpider SetCallBack(Action<string,string> action) {
+        public DriectSpider SetCallBack(Action<List<Dictionary<string,string>>,string> action) {
             _save = action;
             return this;
         }
         protected override void Parse(IHtmlDocument html)
         {
-            var result = _config == null ?html.Source.Text: ToJson( _config._queryItems(html));
-            Save(result);
+            if (_config != null)
+            {
+                var result = _config._queryItems(html);
+                Save(result);
+            }
+            else {
+                Info(html.Source.Text);
+            }
         }
 
         protected override string GetNextPage(IHtmlDocument dom)
         {
             return _nexPageConfig?._querySelector(dom,_currentPage);
         }
-        private void Save(string msg) {
+        private void Save(List<Dictionary<string, string>> msg) {
             if (_save == null) {
-                Info(msg);
+                Info(ToJson(msg));
             } else {
                 _save.Invoke(msg,_currentPage);
             }

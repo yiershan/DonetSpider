@@ -18,16 +18,19 @@ namespace ConsoleApp1
             var configuration = builder.Build();
             SpiderConfig config = new SpiderConfig();
             configuration.GetSection("SpiderConfig").Bind(config);
-            new DriectSpider()
-               .SetConfig(config.Config)
-               .SetConfig(config.NextPageConfig)
-               .SetCallBack((a,b)=> {
-                   Console.WriteLine(b);
-                   Console.WriteLine(a.Length);
-               })
-               //.SetLogger(new LogHelper())
-               .StartWithUrlAsync(config.MainUrl)
-               .Wait();
+
+            using (SqliteWriter writer = new SqliteWriter("movgg")) {
+                new DriectSpider()
+                   .SetConfig(config.Config)
+                   .SetConfig(config.NextPageConfig)
+                   .SetCallBack((a, b) => {
+                       writer.Write(a,"wm");
+                   })
+                   //.SetLogger(new LogHelper())
+                   .StartWithUrlAsync(config.MainUrl)
+                   .Wait();
+            }
+
         }
     }
 }

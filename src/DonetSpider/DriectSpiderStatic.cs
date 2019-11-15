@@ -37,7 +37,7 @@ namespace DonetSpider
             switch (item.SelectorType)
             {
                 case SelectorType.TextContent:
-                    result = temp.TextContent.Trim();
+                    result = temp.TextContent.Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", ""); ;
                     break;
                 case SelectorType.Attribute:
                 default:

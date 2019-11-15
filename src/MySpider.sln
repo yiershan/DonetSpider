@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PuppeteerSharpHttp", "PuppeteerSharpHttp\PuppeteerSharpHttp.csproj", "{8BF2E549-3C33-4C9B-8764-52769F2DC37B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqliteWriter", "SqliteWriter\SqliteWriter.csproj", "{F92E6593-6FF3-48CC-9E1A-3A4F9615D4CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8BF2E549-3C33-4C9B-8764-52769F2DC37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BF2E549-3C33-4C9B-8764-52769F2DC37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BF2E549-3C33-4C9B-8764-52769F2DC37B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F92E6593-6FF3-48CC-9E1A-3A4F9615D4CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F92E6593-6FF3-48CC-9E1A-3A4F9615D4CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F92E6593-6FF3-48CC-9E1A-3A4F9615D4CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F92E6593-6FF3-48CC-9E1A-3A4F9615D4CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

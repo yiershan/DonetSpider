@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DonetSpider\DonetSpider.csproj" />
     <ProjectReference Include="..\PuppeteerSharpHttp\PuppeteerSharpHttp.csproj" />
+    <ProjectReference Include="..\SqliteWriter\SqliteWriter.csproj" />
   </ItemGroup>
 
   <ItemGroup>
