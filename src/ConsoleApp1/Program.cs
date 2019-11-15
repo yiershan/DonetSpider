@@ -1,6 +1,9 @@
 ﻿using AngleSharp.Dom.Html;
 using DonetSpider;
+using DonetSpider.config;
 using DonetSpider.http;
+using DonetSpider.Log;
+using Microsoft.Extensions.Configuration;
 using PuppeteerSharpHttp;
 using System;
 using System.Linq;
@@ -11,15 +14,23 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var builder = new ConfigurationBuilder().AddJsonFile("appsettings.json");
+            var configuration = builder.Build();
+            SpiderConfig config = new SpiderConfig();
+            configuration.GetSection("SpiderConfig").Bind(config);
 
-            //new HJD().Start();
-            new _34hfMain()
-                .Start();
+            using (SqliteWriter writer = new SqliteWriter("movgg")) {
+                new DriectSpider()
+                   .SetConfig(config.Config)
+                   .SetConfig(config.NextPageConfig)
+                   .SetCallBack((a, b) => {
+                       writer.Write(a,"wm");
+                   })
+                   //.SetLogger(new LogHelper())
+                   .StartWithUrlAsync(config.MainUrl)
+                   .Wait();
+            }
 
-            //new m()
-            //    .SetUrl("https://www.ck180.net/")
-            //    .Start();
         }
     }
 }
