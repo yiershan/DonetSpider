@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using AngleSharp.Dom.Html;
+using DonetSpider.http;
+using PuppeteerSharpHttp;
 
 namespace ConsoleApp1
 {
 
     public class _34hfMain : DonetSpider.Spider
     {
+        public override string MainUrl => "https://34fh.com";
         private Dictionary<string,string> data = new Dictionary<string, string>();
         private  string saveText => savePath + "index.txt";
         protected override bool BeforeStart()
@@ -40,13 +44,26 @@ namespace ConsoleApp1
 
         protected override void End()
         {
-            foreach (var d in data) {
+            Parallel.ForEach(data, d =>
+            {
+                IHttpHelper http = new PuppeteerSharpHttpHelper();
                 new _34hfPage()
-                    .SetUrl(d.Value)
-                    .SetSavePath($@"{savePath}{d.Key}\")
-                    .Start();
-            }
-            base.End();
+                .SetUrl(d.Value)
+                .SetHttpHelper(http)
+                .SetSavePath($@"{savePath}{d.Key}\")
+                .Start();
+            });
+
+            //IHttpHelper http = new PuppeteerSharpHttpHelper();
+            //foreach (var d in data)
+            //{
+            //    new _34hfPage()
+            //        .SetUrl(d.Value)
+            //        .SetHttpHelper(http)
+            //        .SetSavePath($@"{savePath}{d.Key}\")
+            //        .Start();
+            //}
+            //base.End();
         }
 
     }
@@ -85,9 +102,9 @@ namespace ConsoleApp1
                 var name = r.url.GetHashCode().ToString();
                 var txtName = $"{savePath}{name}.txt";
                 var picName = $"{savePath}{name}.png";
-                if (File.Exists(txtName)) continue;
+                if (File.Exists(picName)) continue;
+                DownPic(picName, r.img);
                 File.WriteAllText(txtName, r.url, Encoding.UTF8);
-                DownPic(picName,r.img);
                 Console.WriteLine($"{DateTime.Now.ToString()}:下载{r.img}完毕！");
             }
             

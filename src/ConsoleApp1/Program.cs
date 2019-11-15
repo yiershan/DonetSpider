@@ -13,7 +13,9 @@ namespace ConsoleApp1
         {
             Console.WriteLine("Hello World!");
 
-
+            //new HJD().Start();
+            new _34hfMain()
+                .Start();
 
             //new m()
             //    .SetUrl("https://www.ck180.net/")
