@@ -58,6 +58,7 @@ namespace DonetSpider
         /// </summary>
         protected async Task WithUrlAsync(string url)
         {
+            if (_currentPage != url) _currentPage = url;
             try
             {
                 Check();

@@ -21,7 +21,11 @@ namespace ConsoleApp1
             new DriectSpider()
                .SetConfig(config.Config)
                .SetConfig(config.NextPageConfig)
-               .SetLogger(new LogHelper())
+               .SetCallBack((a,b)=> {
+                   Console.WriteLine(b);
+                   Console.WriteLine(a.Length);
+               })
+               //.SetLogger(new LogHelper())
                .StartWithUrlAsync(config.MainUrl)
                .Wait();
         }
