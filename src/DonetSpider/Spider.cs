@@ -13,6 +13,7 @@ namespace DonetSpider
 {
     public abstract class Spider: HasLog
     {
+        public string html { get; private set; }
         public string _nextPage { get; private set; }
         public string _currentPage { get; set; }
         public IHttpHelper _Http { get; private set; }
@@ -62,7 +63,7 @@ namespace DonetSpider
             try
             {
                 Check();
-                var html = await _Http.GetHTMLByURLAsync(url);
+                html = await _Http.GetHTMLByURLAsync(url);
                 if (!string.IsNullOrEmpty(html)) {
                     Debugger($"解析{url}页面开始！");
                     using (IHtmlDocument dom = new HtmlParser().Parse(html))
@@ -71,13 +72,14 @@ namespace DonetSpider
                         _nextPage = GetUrl(GetNextPage(dom));
                         this.Parse(dom);
                         Debugger($"解析{url}页面结束！");
-                        await NextPageAsync();
                     }
                 }
             }
             catch(Exception e) {
                 Error($"解析{url}页面出错：{e.Message}");
+                Console.WriteLine($"解析{url}页面出错：{e.Message}");
             }
+            await NextPageAsync();
         }
         private async Task NextPageAsync() {
             if (!string.IsNullOrEmpty(_nextPage)) {

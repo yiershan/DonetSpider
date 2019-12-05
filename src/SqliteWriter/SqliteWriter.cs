@@ -32,34 +32,40 @@ namespace DonetSpider
                 using (SqliteCommand cmd = new SqliteCommand(createSql.createSql, conn))
                 {
                     cmd.ExecuteNonQuery();
-                    cmd.CommandText = insertSql;
-                    result = cmd.ExecuteNonQuery();
+                    insertSql.ForEach(r=> {
+                        cmd.CommandText = r;
+                        cmd.ExecuteNonQuery();
+                        result += 1;
+                    });
+
                 }
             }
             catch (Exception e) {
+                Console.WriteLine(insertSql);
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
             return result;
 
         }
-        private string BuildInsertSql(List<Dictionary<string, string>> keyValues, string tabName) {
-
-            StringBuilder sql = new StringBuilder();
+        private List<string> BuildInsertSql(List<Dictionary<string, string>> keyValues, string tabName) {
+            List<string> result = new List<string>();
             foreach (var data in keyValues) {
-                sql.AppendLine($"{tabName} {Guid.NewGuid().ToString()} , {DateTime.Now}");
+                StringBuilder sql = new StringBuilder();
+                sql.AppendLine($"{tabName} '{DateTime.Now.ToString("F")}'");
                 foreach (var item in data) {
-                    sql.Append($", {item.Value}");
+                    sql.Append($", '{(item.Value+"").Replace("'","")}'");
                 }
-                sql.Append(");");
+
+                result.Add(sql.Append(");").ToString());
             }
-            return sql.ToString();
+            return result;
 
         }
         private (string createSql,string insertSql) BuildTable(Dictionary<string, string> data, string tabName) {
 
-            StringBuilder sql = new StringBuilder($" CREATE TABLE IF NOT EXISTS  {tabName}( id VARCHAR(32) PRIMARY KEY  NOT NULL, createdTime date ");
-            StringBuilder iSql = new StringBuilder($" INSERT INTO {tabName}( id , createdTime");
+            StringBuilder sql = new StringBuilder($" CREATE TABLE IF NOT EXISTS  {tabName}( id INTEGER PRIMARY KEY AUTOINCREMENT , createdTime TEXT ");
+            StringBuilder iSql = new StringBuilder($" INSERT INTO {tabName}( createdTime");
             foreach (var d in data) {
                 var name = $"d_{d.Key}";
                 sql.AppendLine($", {name} TEXT");
